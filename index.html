@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Valentine Week for Sujita ❤️</title>
 
 <style>
@@ -15,6 +16,7 @@ body{
     align-items:center;
     color:white;
     overflow:hidden;
+    position:relative;
 }
 .card{
     background:rgba(0,0,0,0.35);
@@ -23,16 +25,43 @@ body{
     max-width:420px;
     text-align:center;
     box-shadow:0 20px 40px rgba(0,0,0,0.4);
+    position:relative;
+    z-index:1;
 }
 h1{font-size:26px;margin-bottom:10px}
 img{
     width:180px;
     border-radius:15px;
+    transition:transform 0.3s ease;
 }
+img:hover{transform:scale(1.05)}
 #text{
     min-height:120px;
     margin-top:15px;
     font-size:17px;
+    line-height:1.5;
+    background:rgba(255,255,255,0.1);
+    border:2px solid rgba(255,255,255,0.3);
+    border-radius:10px;
+    padding:15px;
+    position:relative;
+    overflow:hidden;
+}
+#text::before{
+    content:"💌";
+    position:absolute;
+    top:5px;
+    left:10px;
+    font-size:20px;
+    opacity:0.7;
+}
+#text::after{
+    content:"❤️";
+    position:absolute;
+    bottom:5px;
+    right:10px;
+    font-size:20px;
+    opacity:0.7;
 }
 button{
     padding:10px 25px;
@@ -43,28 +72,140 @@ button{
     font-size:16px;
     cursor:pointer;
     margin-top:15px;
+    transition:background 0.3s ease;
 }
+button:hover{background:#e0255a}
 #buttons{
     display:none;
     gap:15px;
     justify-content:center;
+    flex-wrap:wrap;
 }
 #yesBtn{animation:pulse 1.4s infinite}
-#noBtn{background:#555;position:absolute}
+#noBtn{background:#555;position:absolute; transition:all 0.2s ease}
 
 @keyframes pulse{
   0%{transform:scale(1)}
   50%{transform:scale(1.08)}
   100%{transform:scale(1)}
 }
+
+/* Confetti styles */
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #ffd700;
+    animation: fall 3s linear infinite;
+    z-index: 0;
+}
+.confetti:nth-child(odd) { background-color: #ff69b4; }
+.confetti:nth-child(3n) { background-color: #00ff00; }
+.confetti:nth-child(4n) { background-color: #ff4500; }
+
+@keyframes fall {
+    0% { transform: translateY(-100vh) rotate(0deg); }
+    100% { transform: translateY(100vh) rotate(360deg); }
+}
+
+/* Floating hearts animation */
+.heart {
+    position: absolute;
+    font-size: 24px;
+    color: #ff69b4;
+    animation: float 6s linear infinite;
+    z-index: 0;
+}
+@keyframes float {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+}
+
+/* Hug effect for Hug Day */
+.hugArms {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50px;
+    animation: hug 2s ease-in-out infinite;
+    z-index: 2;
+    display: none;
+}
+@keyframes hug {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* Chocolate effect for Chocolate Day */
+.chocolate {
+    position: absolute;
+    font-size: 30px;
+    animation: melt 4s linear infinite;
+    z-index: 0;
+}
+@keyframes melt {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(180deg); opacity: 0; }
+}
+
+/* Music controls */
+#musicControls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+#musicToggle, #stopMusic {
+    background: rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#stopMusic { display: none; } /* Hidden initially */
+
+/* Responsive */
+@media (max-width: 600px) {
+    .card { padding: 20px; max-width: 90%; }
+    img { width: 150px; }
+    h1 { font-size: 22px; }
+    #text { font-size: 15px; padding: 10px; }
+    button { font-size: 14px; padding: 8px 20px; }
+    #musicControls { top: 10px; right: 10px; }
+    .hugArms { font-size: 40px; }
+    .chocolate { font-size: 25px; }
+}
 </style>
 </head>
 
 <body>
 
+<!-- Music Controls -->
+<div id="musicControls">
+    <button id="musicToggle" title="Toggle Music">🎵</button>
+    <button id="stopMusic" title="Stop Music Forever">❌</button>
+</div>
+
+<!-- Hidden Audio -->
+<audio id="bgMusic" loop>
+    <source src="music/romantic.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+
+<!-- Hug Arms for Hug Day -->
+<div id="hugArms" class="hugArms">🤗</div>
+
 <div class="card">
     <h1 id="dayTitle"></h1>
-    <img id="photo">
+    <img id="photo" alt="Valentine Image">
     <div id="text">💌 Tap Open to read today’s message ❤️</div>
     <button id="openBtn">Open 💌</button>
 
@@ -75,35 +216,44 @@ button{
 </div>
 
 <script>
-// ===== Date logic
+// ===== Date logic (extended to handle non-February dates by showing a teaser)
 const now = new Date();
-const today = (now.getMonth() === 1) ? now.getDate() : 7;
+const month = now.getMonth();
+const day = now.getDate();
+let today;
+if (month === 1 && day >= 7 && day <= 14) {
+    today = day;
+} else if (month === 1 && day < 7) {
+    today = 7; // Default to Rose Day if before 7th
+} else {
+    today = 7; // Default to Rose Day for other months
+}
 
-// ===== Valentine Week Data (NO <br>, NO \n)
+// ===== Valentine Week Data (NO <br>, NO \n) - Added more poetic touches and emojis
 const days = {
 7:{title:"🌹 Rose Day",img:"images/rose.jpg",msg:
-"Sujita ❤️ just like a rose brightens up the world with its beauty and fragrance, you brighten up my life with your smile and love. Sending you this rose as a small reminder of how special you are to me."
+"Sujita ❤️ just like a rose brightens up the world with its beauty and fragrance, you brighten up my life with your smile and love. Sending you this rose as a small reminder of how special you are to me. 🌹✨"
 },
 8:{title:"💍 Propose Day",img:"images/propose.jpg",msg:
-"Sujita 💖 I’ve been wanting to tell you something from the bottom of my heart. You make my days brighter and my life happier. Will you do me the honor of being my Valentine and sharing this journey of love with me?"
+"Sujita 💖 I’ve been wanting to tell you something from the bottom of my heart. You make my days brighter and my life happier. Will you do me the honor of being my Valentine and sharing this journey of love with me? 💍💕"
 },
 9:{title:"🍫 Chocolate Day",img:"images/chocolate.jpg",msg:
-"Sweet Sujita 🍫 just like chocolate melts in the mouth and brings sweetness, your presence melts my worries and fills my life with joy. Here’s a sweet thought for the sweetest person in my life."
+"Sweet Sujita 🍫 just like chocolate melts in the mouth and brings sweetness, your presence melts my worries and fills my life with joy. Here’s a sweet thought for the sweetest person in my life. 🍫😘"
 },
 10:{title:"🧸 Teddy Day",img:"images/teddy.jpg",msg:
-"My Teddy 🧸 this little teddy may be small, but it carries a big hug for you. I want to be like this teddy for you, always by your side, comforting you and keeping you safe."
+"My Teddy 🧸 this little teddy may be small, but it carries a big hug for you. I want to be like this teddy for you, always by your side, comforting you and keeping you safe. 🧸🤗"
 },
 11:{title:"🤞 Promise Day",img:"images/promise.jpg",msg:
-"Sujita 🤞 today I want to make a promise from my heart to always support you, make you smile, and stand by you no matter what. You are my happiness and my peace."
+"Sujita 🤞 today I want to make a promise from my heart to always support you, make you smile, and stand by you no matter what. You are my happiness and my peace. 🤞💖"
 },
 12:{title:"🤗 Hug Day",img:"images/hug.jpg",msg:
-"Warm hug 🤗 sending you the warmest hug today. Imagine me holding you tight and reminding you how much you mean to me."
+"Warm hug 🤗 sending you the warmest hug today. Imagine me holding you tight and reminding you how much you mean to me. 🤗❤️"
 },
 13:{title:"💋 Kiss Day",img:"images/kiss.jpg",msg:
-"One soft kiss 💋 if I could, I would send you a thousand kisses to show how much I care. Every kiss would carry my love and my heart for you."
+"One soft kiss 💋 if I could, I would send you a thousand kisses to show how much I care. Every kiss would carry my love and my heart for you. 💋😍"
 },
 14:{title:"❤️ Valentine Day",img:"images/valentine1.jpg",msg:
-"My Dearest Sujita ❤️ every day with you feels magical. You are my comfort, my happiness, and my home. I want to wake up with you, dream with you, and grow old with you. Will you be my forever Valentine?"
+"My Dearest Sujita ❤️ every day with you feels magical. You are my comfort, my happiness, and my home. I want to wake up with you, dream with you, and grow old with you. Will you be my forever Valentine? ❤️💍"
 }
 };
 
@@ -113,13 +263,31 @@ const photo = document.getElementById("photo");
 const text = document.getElementById("text");
 const openBtn = document.getElementById("openBtn");
 const buttons = document.getElementById("buttons");
+const musicToggle = document.getElementById("musicToggle");
+const stopMusic = document.getElementById("stopMusic");
+const bgMusic = document.getElementById("bgMusic");
+const hugArms = document.getElementById("hugArms");
 
 // ===== Load today
 const data = days[today];
 title.innerText = data.title;
 photo.src = data.img;
 
-// ===== Typing effect
+// ===== Floating hearts animation (general for all days)
+function createHearts() {
+    for (let i = 0; i < 10; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.innerText = '❤️';
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDelay = Math.random() * 6 + 's';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 6000);
+    }
+}
+setInterval(createHearts, 3000); // Create hearts every 3 seconds
+
+// ===== Typing effect (slightly faster for better UX)
 let i = 0;
 let message = data.msg;
 
@@ -127,10 +295,26 @@ function typeEffect(){
     if(i < message.length){
         text.innerHTML += message.charAt(i);
         i++;
-        setTimeout(typeEffect, 35);
+        setTimeout(typeEffect, 30);
     }else{
         if(today === 14){
             buttons.style.display = "flex";
+        }
+        // Day-specific effects
+        if(today === 12){ // Hug Day
+            hugArms.style.display = "block";
+            setTimeout(() => hugArms.style.display = "none", 5000); // Show for 5 seconds
+        }
+        if(today === 9){ // Chocolate Day
+            for (let j = 0; j < 20; j++) {
+                const chocolate = document.createElement('div');
+                chocolate.className = 'chocolate';
+                chocolate.innerText = '🍫';
+                chocolate.style.left = Math.random() * 100 + '%';
+                chocolate.style.animationDelay = Math.random() * 4 + 's';
+                document.body.appendChild(chocolate);
+                setTimeout(() => chocolate.remove(), 4000);
+            }
         }
     }
 }
@@ -139,20 +323,65 @@ openBtn.onclick = ()=>{
     text.innerHTML = "";
     openBtn.style.display = "none";
     typeEffect();
+    // Start music after clicking Open
+    if(!musicPlaying){
+        bgMusic.play();
+        musicToggle.innerText = "🔊";
+        musicPlaying = true;
+        stopMusic.style.display = "flex"; // Show stop button
+    }
 };
 
-// ===== NO button runaway
+// ===== NO button runaway (enhanced with more randomness)
 let scale = 1;
 noBtn.onmouseover = ()=>{
     scale += 0.1;
     yesBtn.style.transform = `scale(${scale})`;
-    noBtn.style.left = Math.random()*80 + "%";
-    noBtn.style.top = Math.random()*80 + "%";
+    noBtn.style.left = Math.random()*70 + 10 + "%";
+    noBtn.style.top = Math.random()*70 + 10 + "%";
 };
 
-// ===== YES button
+// ===== YES button (added confetti effect)
 yesBtn.onclick = ()=>{
-    document.body.innerHTML = "<h1>🎉 She said YES ❤️</h1><p>Forever with you, Sujita 💍💖</p>";
+    // Create confetti
+    for(let j = 0; j < 100; j++){
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.animationDelay = Math.random() * 3 + 's';
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 3000);
+    }
+    // Change content
+    setTimeout(() => {
+        document.body.innerHTML = "<h1>🎉 She said YES ❤️</h1><p>Forever with you, Sujita 💍💖</p><p>💕 Our love story begins now! 💕</p>";
+    }, 1000);
+};
+
+// ===== Music toggle
+let musicPlaying = false;
+musicToggle.onclick = ()=>{
+    if(musicPlaying){
+        bgMusic.pause();
+        musicToggle.innerText = "🔇";
+        stopMusic.style.display = "none"; // Hide stop button when paused
+    }else{
+        bgMusic.play();
+        musicToggle.innerText = "🔊";
+        stopMusic.style.display = "flex"; // Show stop button when playing
+    }
+    musicPlaying = !musicPlaying;
+};
+
+// ===== Stop Music Forever
+stopMusic.onclick = ()=>{
+    bgMusic.pause();
+    bgMusic.currentTime = 0; // Reset to start
+    musicPlaying = false;
+    musicToggle.innerText = "🎵";
+    stopMusic.style.display = "none"; // Hide stop button
+    // Optional: Hide controls or show a message
+    alert("Music stopped! If you change your mind, click the music button.");
 };
 </script>
 
